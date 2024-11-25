@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EXAM</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="fullscreen-container">
+  <!-- Welcome message section -->
+  <div id="welcomeMessage"></div>
+
+  <!-- Options section -->
+  <div class="options" id="optionsSection">
+    <!-- Dynamic options could be added here if needed -->
+  </div>
+
+  <!-- Message display section -->
+  <div class="dropdown">
+    <div class="message-display" id="messageDisplay">
+      <!-- Messages will be dynamically added here -->
+    </div>
+  </div>
+
+  <!-- Message bar section -->
+  <div class="message-bar">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+  document.getElementById('sendBtn').addEventListener('click', function() {
+      const userInput = document.getElementById('userInput').value;
+
+      if (userInput.trim() !== "") {
+          document.getElementById('welcomeMessage').style.display = 'none';
+          document.getElementById('optionsSection').style.display = 'none';
+
+          const messageDisplay = document.getElementById('messageDisplay');
+
+          // Add user message on the right
+          const userMessageContainer = document.createElement('div');
+          userMessageContainer.classList.add('message', 'user-message-container');
+          userMessageContainer.textContent = userInput;
+          messageDisplay.appendChild(userMessageContainer);
+
+          // Scroll to the bottom
+          messageDisplay.scrollTop = messageDisplay.scrollHeight;
+
+          // Clear input field
+          document.getElementById('userInput').value = "";
+
+          // Fetch AI Mentor response
+          fetch('/get', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                  'msg': userInput
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              const aiMessageText = marked.parse(data.response);
+
+              // Add AI Mentor response on the left
+              const aiMessageContainer = document.createElement('div');
+              aiMessageContainer.classList.add('message', 'ai-message-container');
+              aiMessageContainer.innerHTML = aiMessageText;
+              messageDisplay.appendChild(aiMessageContainer);
+
+              // Scroll to the bottom
+              messageDisplay.scrollTop = messageDisplay.scrollHeight;
+          })
+          .catch(error => {
+              console.error('Error:', error);
+          });
+      }
+  });
+
+  document.getElementById('userInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+          event.preventDefault();
+          document.getElementById('sendBtn').click();
+      }
+  });
+</script>
+</body>
+</html>
